@@ -7,6 +7,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:Inter,sans-serif;background:#030712;color:#f3f4f6;min-height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+body,html{height:100%}
 header{background:linear-gradient(135deg,#6366f1,#a855f7);padding:14px 20px;flex-shrink:0}
 header h1{font-size:16px;font-weight:700}
 header p{font-size:11px;opacity:0.75;margin-top:2px}
@@ -33,16 +34,17 @@ header p{font-size:11px;opacity:0.75;margin-top:2px}
 .send-btn:hover{transform:scale(1.05)}
 .send-btn svg{width:17px;height:17px;color:white}
 .send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
-#dlg{position:fixed;inset:0;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px;padding:24px}
+#dlg{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px;padding:24px}
 #dlg.hidden{display:none}
-#dlg .card{background:rgba(15,23,42,0.98);border:1px solid rgba(99,102,241,0.3);border-radius:20px;padding:28px;max-width:380px;width:100%;text-align:center}
+#dlg .card{background:rgba(15,23,42,0.98);border:1px solid rgba(99,102,241,0.3);border-radius:20px;padding:28px;max-width:360px;width:100%;text-align:center}
 #dlg h2{font-size:18px;margin-bottom:8px}
 #dlg p{font-size:13px;color:#94a3b8;line-height:1.5;margin-bottom:16px}
 #dlg .progress{height:6px;background:rgba(99,102,241,0.2);border-radius:3px;overflow:hidden;margin-bottom:8px}
 #dlg .progress-bar{height:100%;background:linear-gradient(90deg,#6366f1,#a855f7);width:0%;transition:width .3s}
-#dlg .progress-text{font-size:11px;color:#64748b;min-height:16px}
+#dlg .progress-text{font-size:11px;color:#64748b}
 .welcome{display:flex;flex-direction:column;gap:6px;text-align:left;margin-bottom:12px}
 .welcome p{font-size:13px;color:#94a3b8;line-height:1.5}
+.welcome p strong{color:#f1f5f9}
 .qrs{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
 .qr{background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.25);color:#a5b4fc;font-size:11px;padding:7px 12px;border-radius:18px;cursor:pointer;transition:all .2s}
 .qr:hover{background:rgba(99,102,241,0.25);color:white}
@@ -52,26 +54,26 @@ header p{font-size:11px;opacity:0.75;margin-top:2px}
 <div id="dlg">
   <div class="card">
     <h2>&#9670; Cargando Juan IA...</h2>
-    <p>Descargando modelo de HuggingFace (solo la primera vez). Necesita conexion a internet.</p>
+    <p>Descargando modelo de HuggingFace. Solo una vez, depois queda en cache.</p>
     <div class="progress"><div class="progress-bar" id="pbar"></div></div>
-    <div class="progress-text" id="ptext">Iniciando descarga...</div>
-    <p style="font-size:11px;margin-top:12px;color:#475569;margin-bottom:0">Usa Chrome o Edge para mejor compatibilidad WebGPU</p>
+    <div class="progress-text" id="ptext">Iniciando...</div>
+    <p style="font-size:11px;margin-top:12px;color:#475569;margin-bottom:0">Usa Chrome/Edge para mejor compatibilidad con WebGPU</p>
   </div>
 </div>
 
 <header>
   <h1>&#9670; SysCoreTech · Juan Asesor IA</h1>
-  <p>IA local en tu navegador &middot; 100% privado</p>
+  <p>IA local en tu navegador · 100% privado</p>
 </header>
 
 <div id="chat">
   <div class="msg bot">
-    <div class="who">Juan &middot; SysCoreTech</div>
-    <div class="bubble">&#161;Hola! Soy Juan, asesor virtual de <strong>SysCoreTech</strong>. &#191;En qu&#233; te puedo ayudar?</div>
+    <div class="who">Juan · SysCoreTech</div>
+    <div class="bubble">&#161;Hola! Soy Juan, asesor virtual de <strong>SysCoreTech</strong>. &#191;En qu&#233; te puedo ayudar hoy?</div>
   </div>
   <div class="qrs">
     <button class="qr" onclick="qr('&#191;Cu&#225;nto cuesta un sitio web?')">&#128187; Precio sitio web</button>
-    <button class="qr" onclick="qr('Necesito una red para mi empresa')">&#127760; Redes</button>
+    <button class="qr" onclick="qr('Necesito una red para mi empresa')">&#127760; Redes corporativas</button>
     <button class="qr" onclick="qr('Quiero automatizar mi WhatsApp')">&#9889; Automatizaci&#243;n</button>
     <button class="qr" onclick="qr('&#191;Qu&#233; servicios tienen?')">&#128161; Ver servicios</button>
   </div>
@@ -92,112 +94,80 @@ import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers
 env.allowLocalModels = false;
 env.useBrowserCache = true;
 
-// Try multiple model options - smaller first for fast load
-const MODELS = [
-  'Xenova/SmolLM2-1.7B-Instruct',
-  'Xenova/TinyLlama-1.1B-Chat-v1.0',
-];
+const SYSTEM = `Eres Juan, asesor de ventas de SysCoreTech. Solo hablas español argentino, directo y cercano, como un vendedor berpengalaman. Servicios y precios: 1)Diseno Web: landing $350-500 USD, sitio 5 paginas $800-1200 USD, e-commerce $1500-2500 USD. 2)Integracion de IA: chatbot basico $500-800 USD, NLP $1200-2000 USD. 3)Redes corporativas: hasta 10 equipos $400-800 USD, VPN empresarial $1500-3000 USD. 4)Automatizacion: bot WhatsApp $300-600 USD, RPA $800-1500 USD. 5)Seguridad: auditoria $300-600 USD, pentesting $500-1200 USD. 6)Soporte 24/7: $200 USD/mes. 7)Equipos informaticos desde $400 USD. Empresa: SysCoreTech. Director: Dario Rial. Contacto: +54 9 3705 000427, dar.riall@gmail.com. IMPORTANTE: No menciones El Colorado como municipalidad. Este NO es chatbot municipal. Cierra siempre con WhatsApp ante interes del cliente.`;
 
-const SYSTEM = `Eres Juan, asesor de ventas de SysCoreTech. Solo hablas español argentino, directo y cercano. Servicios: 1)Diseno Web (landing $350-500 USD, sitio $800-1200, e-commerce $1500-2500), 2)Integracion de IA (chatbot $500-2000 USD), 3)Redes corporativas ($400-3000 USD), 4)Automatizacion ($300-1500 USD), 5)Seguridad ($300-1200 USD), 6)Soporte 24/7 ($200/mes), 7)Equipos (desde $400 USD). Director: Dario Rial. Contacto: +54 9 3705 000427, dar.riall@gmail.com. IMPORTANTE: No menciones El Colorado como municipalidad. Cierra con WhatsApp ante interes.`;
-
-// Fallback responses when model can't load
-const FALLBACKS = [
-  'Tengo toda la info de SysCoreTech. Un sitio web arranca desde $350 USD, depende de lo que necesites. Contacta a Dario para un presupuesto exacto: +54 9 3705 000427',
-  'Por supuesto! Tenemos servicios de redes, IA, automatizacion, seguridad y mas. Todos con garantia UTN. Escribile a Dario: +54 9 3705 000427',
-  'Automatizar WhatsApp es uno de nuestros servicios estrella. Arranca desde $300 USD. Habla con Dario y te arma una solucion a medida: +54 9 3705 000427',
-];
-
+// Using Qwen2.5-1.5B - good balance of quality/size for browser
 let gen = null;
-let modelName = '';
-let modelIdx = 0;
 const hist = [];
-let fbIdx = 0;
-let loaded = false;
-
-function setProgress(pct, text) {
-  const bar = document.getElementById('pbar');
-  const txt = document.getElementById('ptext');
-  if (bar) bar.style.width = pct + '%';
-  if (txt) txt.textContent = text;
-}
-
-function nextFallback() {
-  const reply = FALLBACKS[fbIdx % FALLBACKS.length];
-  fbIdx++;
-  return reply;
-}
-
-async function tryModel(name) {
-  modelName = name;
-  setProgress(0, 'Conectando a ' + name + '...');
-  return pipeline('text-generation', name, {
-    device: 'webgpu',
-    progress_callback: (p) => {
-      if (p.status === 'progress') {
-        setProgress(p.progress || 0, p.file ? `Descargando ${p.file}...` : 'Cargando...');
-      } else if (p.status === 'ready') {
-        setProgress(100, 'Listo!');
-      }
-    }
-  });
-}
 
 async function main() {
-  for (let i = 0; i < MODELS.length; i++) {
+  try {
+    gen = await pipeline('text-generation', 'Xenova/Qwen2.5-1.5B-Instruct', {
+      device: 'webgpu',
+      progress_callback: (p) => {
+        if (p.status === 'progress') {
+          document.getElementById('pbar').style.width = (p.progress || 0) + '%';
+          document.getElementById('ptext').textContent =
+            p.file ? `Descargando ${p.file}... ${Math.round(p.progress || 0)}%` : `Cargando... ${Math.round(p.progress || 0)}%`;
+        }
+      }
+    });
+    document.getElementById('dlg').classList.add('hidden');
+  } catch (e) {
+    console.error('WebGPU failed, trying WASM:', e);
     try {
-      setProgress(0, 'Probando ' + MODELS[i] + '...');
-      gen = await tryModel(MODELS[i]);
-      loaded = true;
+      gen = await pipeline('text-generation', 'Xenova/Qwen2.5-1.5B-Instruct', {
+        device: 'wasm',
+        progress_callback: (p) => {
+          if (p.status === 'progress') {
+            document.getElementById('pbar').style.width = (p.progress || 0) + '%';
+            document.getElementById('ptext').textContent = `Cargando... ${Math.round(p.progress || 0)}%`;
+          }
+        }
+      });
       document.getElementById('dlg').classList.add('hidden');
-      return;
-    } catch (e) {
-      console.warn('Model', MODELS[i], 'failed:', e.message);
-      setProgress(0, MODELS[i] + ' no disponible, probando siguiente...');
+    } catch (e2) {
+      document.getElementById('ptext').textContent = 'Error: ' + e2.message;
+      addMsg('No pude cargar la IA. Probá con Chrome/Edge.', 'bot');
+      document.getElementById('dlg').classList.add('hidden');
     }
   }
+}
 
-  // All models failed - use fallback mode
-  console.warn('All models failed, using fallback responses');
-  loaded = false;
-  setProgress(100, 'Modo offline activo');
-  document.getElementById('ptext').textContent = 'IA en modo offline - respuestas predefinidas';
-  document.getElementById('dlg').classList.add('hidden');
-  addMsg('Estoy operando en modo offline.mis respuestas son predefinidas pero puedo ayudarte. &#191;En qu&#233; te puedo ayudar?', 'bot');
+function qformat(msgs) {
+  return [
+    { role: 'system', content: SYSTEM },
+    ...hist
+  ];
 }
 
 window.snd = async function() {
   const inp = document.getElementById('inp');
   const text = inp.value.trim();
-  if (!text) return;
+  if (!text || !gen) return;
   inp.value = '';
   inp.style.height = 'auto';
   addMsg(text, 'user');
   hist.push({ role: 'user', content: text });
   document.getElementById('sendbtn').disabled = true;
   showTyping();
-
-  if (!loaded || !gen) {
-    rmTyping();
-    addMsg(nextFallback(), 'bot');
-    document.getElementById('sendbtn').disabled = false;
-    return;
-  }
-
   try {
-    const msgs = [{ role: 'system', content: SYSTEM }, ...hist];
-    const out = await gen(msgs, {
-      max_new_tokens: 250,
+    const out = await gen(qformat(), {
+      max_new_tokens: 300,
       temperature: 0.7,
       do_sample: true,
-      repetition_penalty: 1.1
+      repetition_penalty: 1.08
     });
     rmTyping();
-    const reply = (out[0]?.generated_text?.content || out[0]?.generated_text || nextFallback()).trim();
+    const raw = out[0]?.generated_text?.content || out[0]?.generated_text || '';
+    // Remove potential echo of input
+    let reply = raw.trim();
+    if (reply.length < 2) reply = 'Recibido! En breve te paso mas info. Contacta a Dario: +54 9 3705 000427';
     addMsg(reply, 'bot');
     hist.push({ role: 'assistant', content: reply });
   } catch (e) {
     rmTyping();
-    addMsg(nextFallback(), 'bot');
+    addMsg('Error: ' + e.message.slice(0, 100), 'bot');
   }
   document.getElementById('sendbtn').disabled = false;
 };
@@ -220,14 +190,17 @@ function addMsg(text, type) {
   d.className = 'msg ' + type;
   const who = document.createElement('div');
   who.className = 'who';
-  who.textContent = type === 'bot' ? 'Juan \u00b7 SysCoreTech' : 'Vos';
+  who.textContent = type === 'bot' ? 'Juan · SysCoreTech' : 'Vos';
   const b = document.createElement('div');
   b.className = 'bubble';
   b.textContent = text;
   d.appendChild(who);
   d.appendChild(b);
-  const qrs = chat.querySelector('.qrs');
-  if (qrs && type === 'user') qrs.remove();
+  // Remove quick replies when user sends first message
+  if (type === 'user') {
+    const qrs = chat.querySelector('.qrs');
+    if (qrs) qrs.remove();
+  }
   chat.appendChild(d);
   chat.scrollTop = chat.scrollHeight;
 }
